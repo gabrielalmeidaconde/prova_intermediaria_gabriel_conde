@@ -56,4 +56,4 @@ jobs:
         script: |
           docker stop app_transacao
           docker rm --force app_transacao
-          docker run  -d -p 80:5001 -e POSTGRES_URL=${{ secrets.POSTGRES_URL }} -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} --network=rede --name  app_transacao gabirubr/app_transacao:${{ github.sha }}
+          docker run  -d -p 80:5000 -e POSTGRES_URL=${{ secrets.POSTGRES_URL }} -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} --network=rede --name  app_transacao gabirubr/app_transacao:${{ github.sha }}
