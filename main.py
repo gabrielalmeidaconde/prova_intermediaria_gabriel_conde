@@ -15,20 +15,24 @@ db.init_app(app)
 
 # Helper para validar usuário
 def get_user_info(user_id):
-    url = f"http://18.228.48.67/users/{str(user_id).strip()}"
     try:
-        resp = requests.get(url, timeout=5)
-        print("DEBUG user status:", resp.status_code)
-        print("DEBUG user body:", resp.text)
+        user_id = str(user_id).strip()
 
-        if resp.status_code == 200:
-            return resp.json()
-        if resp.status_code == 404:
-            return None
+        # 1) tenta listar todos os usuários
+        resp = requests.get("http://18.228.48.67/users", timeout=5)
+        if resp.status_code != 200:
+            abort(502, description="Erro ao consultar serviço de usuários")
 
-        resp.raise_for_status()
-    except requests.RequestException as e:
-        print("Erro ao consultar usuário:", e)
+        usuarios = resp.json()
+
+        # 2) procura o usuário pelo id
+        for user in usuarios:
+            if str(user.get("id")) == user_id:
+                return user
+
+        return None
+
+    except requests.RequestException:
         abort(502, description="Erro ao consultar serviço de usuários")
 
 @app.route("/transacao", methods=["GET"])
@@ -65,8 +69,6 @@ def criar_transacao():
     if not user_info:
         abort(404, description="Usuário não encontrado")
 
-    if str(user_info.get("id")) != str(user_id):
-        abort(404, description="Usuário não encontrado")
 
     valor_total = float(quantidade) * float(preco_unitario)
     transacao = Transacao(
