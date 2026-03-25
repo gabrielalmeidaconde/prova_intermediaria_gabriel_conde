@@ -15,11 +15,21 @@ db.init_app(app)
 
 # Helper para validar usuário
 def get_user_info(user_id):
-    url = f"http://18.228.48.67/users/{user_id}"
-    resp = requests.get(url)
-    if resp.status_code == 200:
-        return resp.json()
-    return None
+    url = f"http://18.228.48.67/users/{str(user_id).strip()}"
+    try:
+        resp = requests.get(url, timeout=5)
+        print("DEBUG user status:", resp.status_code)
+        print("DEBUG user body:", resp.text)
+
+        if resp.status_code == 200:
+            return resp.json()
+        if resp.status_code == 404:
+            return None
+
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        print("Erro ao consultar usuário:", e)
+        abort(502, description="Erro ao consultar serviço de usuários")
 
 @app.route("/transacao", methods=["GET"])
 def listar_transacoes():
@@ -30,7 +40,7 @@ def listar_transacoes():
         transacoes = Transacao.query.all()
     return jsonify([t.to_dict() for t in transacoes]), 200
 
-@app.route("/transacao/<int:transacao_id>", methods=["DELETE"])
+@app.route("/transacao/<string:transacao_id>", methods=["DELETE"])
 def deletar_transacao(transacao_id):
     transacao = Transacao.query.get(transacao_id)
     if not transacao:
@@ -53,6 +63,9 @@ def criar_transacao():
 
     user_info = get_user_info(user_id)
     if not user_info:
+        abort(404, description="Usuário não encontrado")
+
+    if str(user_info.get("id")) != str(user_id):
         abort(404, description="Usuário não encontrado")
 
     valor_total = float(quantidade) * float(preco_unitario)
