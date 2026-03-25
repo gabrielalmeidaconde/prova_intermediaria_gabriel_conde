@@ -44,7 +44,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: gabirubr/app_users2:${{ github.sha }}
+        tags: gabirubr/app_transacao:${{ github.sha }}
 
     - name: executing remote ssh commands using password
       uses: appleboy/ssh-action@master
@@ -54,6 +54,6 @@ jobs:
         key: ${{ secrets.KEY_TEST }}
         port: 22
         script: |
-          docker stop app-users
-          docker rm --force app-users
-          docker run  -d -p 80:5001 -e POSTGRES_URL=${{ secrets.POSTGRES_URL }} -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} --network=rede --name  app-user gabirubr/app_users2:${{ github.sha }}
+          docker stop app_transacao
+          docker rm --force app_transacao
+          docker run  -d -p 80:5001 -e POSTGRES_URL=${{ secrets.POSTGRES_URL }} -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} --network=rede --name  app-user gabirubr/app_:${{ github.sha }}
