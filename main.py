@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 QUEUE_NAME = "transacao-queue"
 CACHE_TTL = 300  # 5 minutos
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "postgresql://appuser:apppass@localhost:5432/users")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "postgresql://appuser:apppass@localhost:5432/transacoes")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
