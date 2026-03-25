@@ -8,32 +8,45 @@ app = Flask(__name__)
 
 QUEUE_NAME = "transacao-queue"
 CACHE_TTL = 300  # 5 minutos
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "postgresql://appuser:apppass@localhost:5432/transacoes")
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://appuser:apppass@postgres-users:5432/transacoes"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
-# Helper para validar usuário
 def get_user_info(user_id):
     try:
         user_id = str(user_id).strip()
-
-        # 1) tenta listar todos os usuários
         resp = requests.get("http://18.228.48.67/users", timeout=5)
+
+        print("STATUS:", resp.status_code)
+        print("BODY:", resp.text)
+
         if resp.status_code != 200:
-            abort(502, description="Erro ao consultar serviço de usuários")
+            return None
 
-        usuarios = resp.json()
+        dados = resp.json()
 
-        # 2) procura o usuário pelo id
-        for user in usuarios:
-            if str(user.get("id")) == user_id:
-                return user
+        # Caso venha uma lista direta
+        if isinstance(dados, list):
+            for user in dados:
+                if str(user.get("id")) == user_id:
+                    return user
+
+        # Caso venha um objeto com chave "users"
+        if isinstance(dados, dict) and "users" in dados:
+            for user in dados["users"]:
+                if str(user.get("id")) == user_id:
+                    return user
+
+        # Caso venha um objeto único
+        if isinstance(dados, dict) and str(dados.get("id")) == user_id:
+            return dados
 
         return None
 
-    except requests.RequestException:
-        abort(502, description="Erro ao consultar serviço de usuários")
+    except Exception as e:
+        print("ERRO:", e)
+        return None
 
 @app.route("/transacao", methods=["GET"])
 def listar_transacoes():
@@ -66,6 +79,8 @@ def criar_transacao():
         abort(400, description="Dados incompletos")
 
     user_info = get_user_info(user_id)
+    print("USER INFO:", user_info)
+
     if not user_info:
         abort(404, description="Usuário não encontrado")
 
